@@ -10,7 +10,7 @@ class BookShelfPage extends Component {
         shelves: PropTypes.object.isRequired
     };
 
-    render() {
+    render = () => {
         let shelves = this.props.shelves;
 
         return (
