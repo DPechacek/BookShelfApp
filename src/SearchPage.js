@@ -4,14 +4,18 @@ import { Link } from 'react-router-dom';
 
 class SearchPage extends Component {
     static propTypes = {
-        books: PropTypes.array.isRequired
+        books: PropTypes.array.isRequired,
+        updateBook: PropTypes.func.isRequired,
+        shelves: PropTypes.object.isRequired
     };
 
     render() {
         return (
             <div className="search-books">
                 <div className="search-books-bar">
-                    <button className="close-search" onClick={() => this.setState({ showSearchPage: false })}>Close</button>
+                    <Link to='/'>
+                        <button className='close-search'>Close</button>
+                    </Link>
                     <div className="search-books-input-wrapper">
                         {/*
                            NOTES: The search from BooksAPI is limited to a particular set of search terms.
@@ -25,7 +29,9 @@ class SearchPage extends Component {
                     </div>
                 </div>
                 <div className="search-books-results">
-                    <ol className="books-grid"></ol>
+                    <ol className="books-grid">
+
+                    </ol>
                 </div>
             </div>
         );
