@@ -5,6 +5,9 @@ import Book from "./components/Book";
 import * as BooksAPI from './BooksAPI';
 import * as _ from "underscore";
 
+/**
+ * @description Page for searching for books to add to shelves.  Available at '/search' route.
+ */
 class SearchPage extends Component {
     static propTypes = {
         books: PropTypes.array.isRequired,
@@ -12,19 +15,34 @@ class SearchPage extends Component {
         shelves: PropTypes.object.isRequired
     };
 
+    /**
+     * Loads on component creation
+     */
     componentWillMount() {
+        /**
+         * Takes a search term and either erases results if term is empty or searches and sets results.  Will wait until
+         * half a second after the last call to run.
+         */
         this.updateSearchTerm = _.debounce(function() {
-            let trimmedQuery = this.state.searchTerm.trim();
+            const trimmedQuery = this.state.searchTerm.trim();
 
+            /**
+             * Clears results if query is empty
+             */
             if(trimmedQuery.length === 0) {
                 this.updateSearchResults([]);
             } else {
+                /**
+                 * Otherwise searches for books based on query
+                 */
                 BooksAPI.search(trimmedQuery)
                     .then((books) => {
+                        /**
+                         * If there is no error, display the results
+                         */
                         if(!books.error) {
                             this.updateSearchResults(books)
-                        }
-                        else {
+                        } else {
                             this.updateSearchResults([]);
                         }
                     });
@@ -37,8 +55,11 @@ class SearchPage extends Component {
         filteredBooks: []
     };
 
+    /**
+     * @description Updates the search term as the user types
+     */
     handleOnChange = (event) => {
-        let query = event.target.value;
+        const query = event.target.value;
 
         this.setState({
             searchTerm: query
@@ -47,27 +68,26 @@ class SearchPage extends Component {
         this.updateSearchTerm();
     };
 
+    /**
+     * @description Updates the state with the returned results
+     */
     updateSearchResults = (results) => {
-        let mergedResults = [];
-
-        results.forEach((searchResult) => {
-            let index = this.props.books.findIndex((book) => (book.id === searchResult.id));
-
-            if(index > -1) {
-                let mergedBook = searchResult;
-                mergedBook.shelf = this.props.books[index].shelf;
-                mergedResults.push(mergedBook);
-            } else {
-                searchResult.shelf = 'none';
-                mergedResults.push(searchResult);
-            }
-        });
-
         this.setState({
-            filteredBooks: mergedResults
+            filteredBooks: results.map((currentBook) => {
+                /*
+                 * Set the correct shelf for the book.
+                 */
+                const bookIndex = this.props.books.findIndex((book) => (book.id === currentBook.id));
+
+                return (bookIndex > -1 ? Object.assign({}, currentBook, this.props.books[bookIndex])
+                    : Object.assign({}, currentBook, {shelf: 'none'}));
+            })
         });
     };
 
+    /**
+     * Updates the main state and the local state
+     */
     updateBook = (book, updatedShelf) => {
         this.props.updateBook(book, updatedShelf);
         this.setState((currentState) => ({
@@ -77,7 +97,6 @@ class SearchPage extends Component {
     };
 
     render = () => {
-
         return (
             <div className="search-books">
                 <div className="search-books-bar">
@@ -85,20 +104,15 @@ class SearchPage extends Component {
                         <button className='close-search'>Close</button>
                     </Link>
                     <div className="search-books-input-wrapper">
-                        {/*
-                           NOTES: The search from BooksAPI is limited to a particular set of search terms.
-                           You can find these search terms here:
-                           https://github.com/udacity/reactnd-project-myreads-starter/blob/master/SEARCH_TERMS.md
-
-                           However, remember that the BooksAPI.search method DOES search by title or author. So, don't worry if
-                           you don't find a specific author or title. Every search is limited by search terms.
-                        **/}
                         <input type="text" placeholder="Search by title or author" value={this.state.searchTerm} onChange={this.handleOnChange}/>
                     </div>
                 </div>
                 <div className="search-books-results">
                     <ol className="books-grid">
                         {
+                            /*
+                             * Display each book in the results
+                             */
                             this.state.filteredBooks.map(book => (
                                 <Book key={book.id}
                                       book={book}

@@ -2,6 +2,13 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import Book from "./Book";
 
+/**
+ * @description Bookshelf component containing assigned books.
+ *
+ * @param props
+ * @returns {*}
+ * @constructor
+ */
 function BookShelf(props) {
     return (
         <div className="bookshelf">
@@ -25,6 +32,10 @@ function BookShelf(props) {
     );
 }
 
+/**
+ * @description Props definitions
+ * @type {{books: (shim|*|e), shelfTitle: (shim|*|e), updateBook: (shim|*|e), shelves: (shim|*|e)}}
+ */
 BookShelf.propTypes = {
     books: PropTypes.array.isRequired,
     shelfTitle: PropTypes.string.isRequired,
