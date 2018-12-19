@@ -15,19 +15,28 @@ class BooksApp extends React.Component {
     };
 
     componentDidMount() {
+        this.loadBooks();
+    }
+
+    loadBooks = () => {
         BooksAPI.getAll().then((books) => {
             this.setState({
                 books: books
             });
         })
-    }
+    };
 
-    updateBook = (book, shelf) => {
-        BooksAPI.update(book, shelf)
-            .then((book) => {
+    updateBook = (book, updatedShelf) => {
+        BooksAPI.update(book, updatedShelf)
+            .then(() => {
+                //let updatedBook = book;
+                //updatedBook.shelf = shelf;
+
                 this.setState((currentState) => ({
-                    books: currentState.books.concat([book])
-                }))
+                    books: currentState.books.map((currentBook) => (currentBook.id === book.id ?
+                            Object.assign({}, currentBook, {shelf: updatedShelf}) : currentBook))
+                }));
+                //this.loadBooks();
             });
     };
 

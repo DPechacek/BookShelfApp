@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
 import Book from "./components/Book";
 import * as BooksAPI from './BooksAPI';
+import * as _ from "underscore";
 
 class SearchPage extends Component {
     static propTypes = {
@@ -11,51 +12,52 @@ class SearchPage extends Component {
         shelves: PropTypes.object.isRequired
     };
 
+    componentWillMount() {
+        this.updateSearchTerm = _.debounce(function() {
+            let trimmedQuery = this.state.searchTerm.trim();
+
+            if(trimmedQuery.length === 0) {
+                this.updateSearchResults([]);
+            } else {
+                BooksAPI.search(trimmedQuery)
+                    .then((books) => {
+                        if(!books.error) {
+                            this.updateSearchResults(books)
+                        }
+                        else {
+                            this.updateSearchResults([]);
+                        }
+                    });
+            }
+        }, 500)
+    }
+
     state = {
         searchTerm: '',
         filteredBooks: []
     };
 
-    updateSearchTerm = (event) => {
+    handleOnChange = (event) => {
         let query = event.target.value;
 
         this.setState({
             searchTerm: query
         });
 
-        if(query.length === 0) {
-            this.updateSearchResults([]);
-        }
-        else {
-            BooksAPI.search(query.trim())
-                .then((books) => {
-                    if(!books.error) {
-                        this.updateSearchResults(books)
-                    }
-                    else {
-                        this.updateSearchResults([]);
-                    }
-                });
-        }
+        this.updateSearchTerm();
     };
 
     updateSearchResults = (results) => {
         let mergedResults = [];
 
         results.forEach((searchResult) => {
-            console.log(searchResult);
-            let merged = false;
+            let index = this.props.books.findIndex((book) => (book.id === searchResult.id));
 
-            this.props.books.forEach((book) => {
-                if(book.id === searchResult.id) {
-                    let mergedBook = {...searchResult, ...book};
-                    mergedResults.push(mergedBook);
-                    merged = true;
-                    return false;
-                }
-            });
-
-            if(!merged) {
+            if(index > -1) {
+                let mergedBook = searchResult;
+                mergedBook.shelf = this.props.books[index].shelf;
+                mergedResults.push(mergedBook);
+            } else {
                 searchResult.shelf = 'none';
                 mergedResults.push(searchResult);
             }
@@ -64,6 +66,14 @@ class SearchPage extends Component {
         this.setState({
             filteredBooks: mergedResults
         });
+    };
+
+    updateBook = (book, updatedShelf) => {
+        this.props.updateBook(book, updatedShelf);
+        this.setState((currentState) => ({
+            filteredBooks: currentState.filteredBooks.map((currentBook) => (currentBook.id === book.id ?
+                Object.assign({}, currentBook, {shelf: updatedShelf}) : currentBook))
+        }));
     };
 
     render = () => {
@@ -83,7 +93,7 @@ class SearchPage extends Component {
                            However, remember that the BooksAPI.search method DOES search by title or author. So, don't worry if
                            you don't find a specific author or title. Every search is limited by search terms.
                         **/}
-                        <input type="text" placeholder="Search by title or author" value={this.state.searchTerm} onChange={this.updateSearchTerm}/>
+                        <input type="text" placeholder="Search by title or author" value={this.state.searchTerm} onChange={this.handleOnChange}/>
                     </div>
                 </div>
                 <div className="search-books-results">
@@ -92,7 +102,7 @@ class SearchPage extends Component {
                             this.state.filteredBooks.map(book => (
                                 <Book key={book.id}
                                       book={book}
-                                      updateBook={this.props.updateBook}
+                                      updateBook={this.updateBook}
                                       shelves={this.props.shelves}
                                 />
                             ))
