@@ -17,6 +17,8 @@ class SearchPage extends Component {
 
     /**
      * Loads on component creation
+     *
+     * Learned from https://stackoverflow.com/questions/23123138/perform-debounce-in-react-js
      */
     componentWillMount() {
         /**
@@ -93,6 +95,9 @@ class SearchPage extends Component {
         this.setState((currentState) => ({
             filteredBooks: currentState.filteredBooks.map((currentBook) => (currentBook.id === book.id ?
                 Object.assign({}, currentBook, {shelf: updatedShelf}) : currentBook))
+            /*
+             * Above Object.assign call from https://stackoverflow.com/questions/28121272/whats-the-best-way-to-update-an-object-in-an-array-in-reactjs
+             */
         }));
     };
 

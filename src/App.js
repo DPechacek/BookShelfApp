@@ -62,6 +62,9 @@ class BooksApp extends React.Component {
                          */
                         books: currentState.books.map((currentBook) => (currentBook.id === updatedBook.id ?
                             Object.assign({}, currentBook, {shelf: updatedShelf}) : currentBook))
+                        /*
+                         * Above Object.assign call from https://stackoverflow.com/questions/28121272/whats-the-best-way-to-update-an-object-in-an-array-in-reactjs
+                         */
                     }));
                 }
 
